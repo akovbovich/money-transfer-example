@@ -13,10 +13,28 @@ class IntegrationSpec extends PlaySpecification {
       contentAsString(xfer) must equalTo("""{"res":"ok"}""")
     }
 
+    "transfer zero amount should success" in new WithApplication {
+      val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "3", "accto" -> "1", "amt" -> "0")
+      val Some(xfer) = route(app, request)
+      contentAsString(xfer) must equalTo("""{"res":"ok"}""")
+    }
+
     "transfer resting money from non-empty account should success" in new WithApplication {
       val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "1", "accto" -> "2", "amt" -> "50")
       val Some(xfer) = route(app, request)
       contentAsString(xfer) must equalTo("""{"res":"ok"}""")
+    }
+
+    "transfer to the same non-empty account should success" in new WithApplication {
+      val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "2", "accto" -> "2", "amt" -> "200")
+      val Some(xfer) = route(app, request)
+      contentAsString(xfer) must equalTo("""{"res":"ok"}""")
+    }
+
+    "overdraft transfer to the same non-empty account should fail" in new WithApplication {
+      val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "2", "accto" -> "2", "amt" -> "201")
+      val Some(xfer) = route(app, request)
+      contentAsString(xfer) must equalTo("""{"error":"computer says no"}""")
     }
 
     "overdraft transfer from non-empty account should fail" in new WithApplication {
@@ -41,6 +59,12 @@ class IntegrationSpec extends PlaySpecification {
       val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "2", "accto" -> "4", "amt" -> "50")
       val Some(xfer) = route(app, request)
       contentAsString(xfer) must equalTo("""{"error":"computer says no"}""")
+    }
+
+    "transfer negative amount should fail" in new WithApplication {
+      val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "2", "accto" -> "3", "amt" -> "-50")
+      val Some(xfer) = route(app, request)
+      contentAsString(xfer) must equalTo("""{"error":{"amt":["Must be greater or equal to 0"]}}""")
     }
 
     "dump should success" in new WithApplication {
