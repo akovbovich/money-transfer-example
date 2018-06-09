@@ -1,6 +1,6 @@
-1. sbt test
-2. sbt stage
-3. ./run.sh
+```console
+sbt clean test stage && ./run.sh
+```
 
 ```console
 curl http://localhost:9000/dump
