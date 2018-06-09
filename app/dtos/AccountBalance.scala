@@ -9,5 +9,5 @@ object AccountBalance {
   type AccountId = Long
   type BalanceAmt = Long
 
-  implicit val personFormat: Format[AccountBalance] = Json.format[AccountBalance]
+  implicit val accountBalanceFormat: Format[AccountBalance] = Json.format[AccountBalance]
 }

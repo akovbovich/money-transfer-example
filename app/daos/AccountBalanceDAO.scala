@@ -19,14 +19,14 @@ class AccountBalanceDAO @Inject()(dbConfigProvider: DatabaseConfigProvider) {
 
   private lazy val accountBalanceTab = TableQuery[AccountBalanceTable]
 
-  def debitQuery(accountId: Long, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
+  def debitDML(accountId: Long, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
     sqlu"""
          UPDATE account_balance
          SET    balance = balance + $amount
          WHERE  account_id = $accountId
        """
 
-  def creditQuery(accountId: Long, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
+  def creditDML(accountId: Long, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
     sqlu"""
          UPDATE account_balance
          SET    balance = balance - $amount

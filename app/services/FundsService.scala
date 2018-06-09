@@ -20,9 +20,9 @@ class FundsService @Inject()(accountBalanceDAO: AccountBalanceDAO, dbConfigProvi
 
   def moveFromTo(fromAccount: Long, toAccount: Long, amount: Long): Future[Either[String, TransferResult]] = {
     val tx = for {
-      i <- accountBalanceDAO.creditQuery(fromAccount, amount)
-      j <- accountBalanceDAO.debitQuery(toAccount, amount)
-      _ <- if (i == 1 && j == 1) DBIO.successful(i + j) else DBIO.failed(new Throwable("Both records must be updated"))
+      r1 <- accountBalanceDAO.creditDML(fromAccount, amount)
+      r2 <- accountBalanceDAO.debitDML(toAccount, amount)
+      _ <- if (r1 == 1 && r2 == 1) DBIO.successful(()) else DBIO.failed(new Throwable("Both records must be updated"))
     } yield ()
 
     db.run(tx.transactionally)
