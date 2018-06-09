@@ -31,13 +31,13 @@ class IntegrationSpec extends PlaySpecification {
       contentAsString(xfer) must equalTo("""{"error":"computer says no"}""")
     }
 
-    "transfer from non-existing should fail" in new WithApplication {
+    "transfer from non-existing account should fail" in new WithApplication {
       val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "4", "accto" -> "1", "amt" -> "50")
       val Some(xfer) = route(app, request)
       contentAsString(xfer) must equalTo("""{"error":"computer says no"}""")
     }
 
-    "transfer to non-existing should fail" in new WithApplication {
+    "transfer to non-existing account should fail" in new WithApplication {
       val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "2", "accto" -> "4", "amt" -> "50")
       val Some(xfer) = route(app, request)
       contentAsString(xfer) must equalTo("""{"error":"computer says no"}""")
