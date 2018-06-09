@@ -43,5 +43,11 @@ class IntegrationSpec extends PlaySpecification {
       contentAsString(xfer) must equalTo("""{"error":"computer says no"}""")
     }
 
+    "dump should success" in new WithApplication {
+      val request = FakeRequest(GET, "/dump")
+      val Some(dump) = route(app, request)
+      contentAsString(dump) must equalTo("""[{"account":1,"balance":0},{"account":2,"balance":200},{"account":3,"balance":0}]""")
+    }
+
   }
 }

@@ -5,7 +5,7 @@ import javax.inject._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
 import services.{DumpResult, FundsService}
 
@@ -39,7 +39,7 @@ class FundsController @Inject()(fundsService: FundsService, cc: MessagesControll
 
   def dumpAccounts: Action[AnyContent] = Action.async { implicit request =>
     fundsService.dump.map((dr: DumpResult) =>
-      Ok(Json.arr(dr.value.map { case (accId, bal) => Json.obj("account" -> accId, "balance" -> bal) })))
+      Ok(Json.toJson(dr.value.map { case (accId, bal) => Json.obj("account" -> accId, "balance" -> bal) })))
   }
 }
 
