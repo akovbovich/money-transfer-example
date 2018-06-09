@@ -18,7 +18,7 @@ class FundsService @Inject()(accountBalanceDAO: AccountBalanceDAO, dbConfigProvi
   import dbConfig._
   import profile.api._
 
-  def moveFromTo(fromAccount: Long, toAccount: Long, amount: Long): Future[Either[String, TransferResult]] = {
+  def moveFromTo(fromAccount: AccountId, toAccount: AccountId, amount: Long): Future[Either[String, TransferResult]] = {
     val tx = for {
       r1 <- accountBalanceDAO.creditDML(fromAccount, amount)
       r2 <- accountBalanceDAO.debitDML(toAccount, amount)

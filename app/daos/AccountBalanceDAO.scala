@@ -3,6 +3,7 @@ package daos
 import javax.inject.{Inject, Singleton}
 
 import dtos.AccountBalance
+import dtos.AccountBalance.AccountId
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
@@ -19,14 +20,14 @@ class AccountBalanceDAO @Inject()(dbConfigProvider: DatabaseConfigProvider) {
 
   private lazy val accountBalanceTab = TableQuery[AccountBalanceTable]
 
-  def debitDML(accountId: Long, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
+  def debitDML(accountId: AccountId, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
     sqlu"""
          UPDATE account_balance
          SET    balance = balance + $amount
          WHERE  account_id = $accountId
        """
 
-  def creditDML(accountId: Long, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
+  def creditDML(accountId: AccountId, amount: Long): DBIOAction[Int, NoStream, Effect.Write] =
     sqlu"""
          UPDATE account_balance
          SET    balance = balance - $amount

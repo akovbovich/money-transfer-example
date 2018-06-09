@@ -7,6 +7,7 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.libs.json.Json
 import play.api.mvc._
+import dtos.AccountBalance.AccountId
 import services.{DumpResult, FundsService}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,4 +44,4 @@ class FundsController @Inject()(fundsService: FundsService, cc: MessagesControll
   }
 }
 
-case class FundsTransferForm(accountFrom: Long, accountTo: Long, amount: Long)
+case class FundsTransferForm(accountFrom: AccountId, accountTo: AccountId, amount: Long)
