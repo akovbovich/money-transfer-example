@@ -1,8 +1,6 @@
 import org.specs2.runner._
 import org.junit.runner._
 import play.api.test._
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class IntegrationSpec extends PlaySpecification {
@@ -22,7 +20,7 @@ class IntegrationSpec extends PlaySpecification {
     }
 
     "overdraft transfer from non-empty account should fail" in new WithApplication {
-      val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "1", "accto" -> "2", "amt" -> "1")
+      val request = FakeRequest(POST, "/xfer").withFormUrlEncodedBody("accfrom" -> "2", "accto" -> "1", "amt" -> "201")
       val Some(xfer) = route(app, request)
       contentAsString(xfer) must equalTo("""{"error":"computer says no"}""")
     }
