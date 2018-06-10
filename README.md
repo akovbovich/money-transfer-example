@@ -1,6 +1,6 @@
 1. Build & Run
 ```console
-sbt clean test stage && ./run.sh
+./run.sh
 ```
 
 2. Sanity check
