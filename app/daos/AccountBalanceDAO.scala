@@ -34,5 +34,5 @@ class AccountBalanceDAO @Inject()(dbConfigProvider: DatabaseConfigProvider) {
          WHERE  account_id = $accountId
        """
 
-  def findAllQuery: DBIOAction[Seq[AccountBalance], NoStream, Effect.Read] = accountBalanceTab.result
+  def findAll: DBIOAction[Seq[AccountBalance], NoStream, Effect.Read] = accountBalanceTab.sortBy(_.accountId.asc).result
 }

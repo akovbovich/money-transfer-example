@@ -10,6 +10,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 @Singleton
 class FundsService @Inject()(accountBalanceDAO: AccountBalanceDAO, dbConfigProvider: DatabaseConfigProvider)(
@@ -20,9 +21,20 @@ class FundsService @Inject()(accountBalanceDAO: AccountBalanceDAO, dbConfigProvi
 
   def moveFromTo(fromAccount: AccountId, toAccount: AccountId, amount: Long): Future[Either[String, TransferResult]] = {
     val tx = for {
-      r1 <- accountBalanceDAO.creditDML(fromAccount, amount)
-      r2 <- accountBalanceDAO.debitDML(toAccount, amount)
-      _ <- if (r1 == 1 && r2 == 1) DBIO.successful(()) else DBIO.failed(new Throwable("Both records must be updated"))
+      _ <- if (amount <= 0) DBIO.failed(InvalidAmountException) else DBIO.successful(())
+      _ <- if (fromAccount == toAccount) DBIO.failed(SameAccountException) else DBIO.successful(())
+      r <- {
+        val dml =
+          if (fromAccount > toAccount) // total ordering to avoid deadlock
+            accountBalanceDAO.creditDML(fromAccount, amount) zip accountBalanceDAO.debitDML(toAccount, amount)
+          else accountBalanceDAO.debitDML(toAccount, amount) zip accountBalanceDAO.creditDML(fromAccount, amount)
+        dml.asTry
+      }
+      _ <- r match {
+        case Success((1, 1))                                  => DBIO.successful(())
+        case Success(_)                                       => DBIO.failed(InvalidAccountException)
+        case Failure(ex) if ex.getMessage.contains("balance") => DBIO.failed(InsufficientAmountException)
+      }
     } yield ()
 
     db.run(tx.transactionally)
@@ -35,9 +47,15 @@ class FundsService @Inject()(accountBalanceDAO: AccountBalanceDAO, dbConfigProvi
   }
 
   def dump: Future[DumpResult] =
-    db.run(accountBalanceDAO.findAllQuery)
+    db.run(accountBalanceDAO.findAll)
       .map((abSeq: Seq[AccountBalance]) => DumpResult(abSeq.map((ab: AccountBalance) => ab.accountId -> ab.balance)))
 }
 
 case class TransferResult(value: String) extends AnyVal
 case class DumpResult(value: Seq[(AccountId, BalanceAmt)])
+
+class FundsTransferException(message: String) extends Throwable(message)
+object InvalidAmountException extends FundsTransferException("invalid amount")
+object InsufficientAmountException extends FundsTransferException("insufficient amount")
+object InvalidAccountException extends FundsTransferException("invalid account")
+object SameAccountException extends FundsTransferException("same account")
