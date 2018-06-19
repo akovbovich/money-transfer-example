@@ -31,17 +31,21 @@ class FundsService @Inject()(accountBalanceDAO: AccountBalanceDAO, dbConfigProvi
         dml.asTry
       }
       _ <- r match {
-        case Success((1, 1))                                  => DBIO.successful(())
-        case Success(_)                                       => DBIO.failed(InvalidAccountException)
-        case Failure(ex) if ex.getMessage.contains("balance") => DBIO.failed(InsufficientAmountException)
+        case Success((1, 1))                                            => DBIO.successful(())
+        case Success(_)                                                 => DBIO.failed(InvalidAccountException)
+        case Failure(ex) if ex.getMessage.toLowerCase.contains("check") => DBIO.failed(InsufficientAmountException)
+        case Failure(ex)                                                => DBIO.failed(ex)
       }
     } yield ()
 
     db.run(tx.transactionally)
       .map((_: Unit) => Right(TransferResult("ok")))
       .recover {
-        case ex =>
+        case ex: FundsTransferException =>
           Logger.debug("moveFromTo failed: " + ex.getMessage)
+          Left("computer says no")
+        case ex =>
+          Logger.error("moveFromTo failed with attention needed: " + ex.getMessage)
           Left("computer says no")
       }
   }
@@ -54,8 +58,8 @@ class FundsService @Inject()(accountBalanceDAO: AccountBalanceDAO, dbConfigProvi
 case class TransferResult(value: String) extends AnyVal
 case class DumpResult(value: Seq[(AccountId, BalanceAmt)])
 
-class FundsTransferException(message: String) extends Throwable(message)
-object InvalidAmountException extends FundsTransferException("invalid amount")
-object InsufficientAmountException extends FundsTransferException("insufficient amount")
-object InvalidAccountException extends FundsTransferException("invalid account")
-object SameAccountException extends FundsTransferException("same account")
+abstract class FundsTransferException(message: String) extends Throwable(message)
+case object InvalidAmountException extends FundsTransferException("invalid amount")
+case object InsufficientAmountException extends FundsTransferException("insufficient amount")
+case object InvalidAccountException extends FundsTransferException("invalid account")
+case object SameAccountException extends FundsTransferException("same account")
